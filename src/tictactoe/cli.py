@@ -7,6 +7,7 @@ import sys
 from typing import NoReturn
 
 from tictactoe.agents.base import Agent
+from tictactoe.agents.genetic_agent import GeneticAgent, save_weights, evolve_population, load_weights
 from tictactoe.agents.heuristic_agent import HeuristicAgent
 from tictactoe.agents.random_agent import RandomAgent
 from tictactoe.board import Board
@@ -32,6 +33,9 @@ def create_agent(agent_type: str, player: int) -> Agent:
             return RandomAgent(player)
         case "heuristic":
             return HeuristicAgent(player)
+        case "genetic":
+            weights = load_weights()
+            return GeneticAgent(player, weights)
         case _:
             msg = f"Unknown agent type: {agent_type}"
             raise ValueError(msg)
@@ -161,7 +165,7 @@ def main() -> NoReturn:
     play_parser = subparsers.add_parser("play", help="Play against AI")
     play_parser.add_argument(
         "--opponent",
-        choices=["random", "heuristic"],
+        choices=["random", "heuristic", "genetic"],
         default="heuristic",
         help="AI opponent type",
     )
@@ -183,6 +187,14 @@ def main() -> NoReturn:
     demo_parser.add_argument("--agent1", default="heuristic", help="First agent")
     demo_parser.add_argument("--agent2", default="random", help="Second agent")
 
+    genetic_parser = subparsers.add_parser("evolve", help="Generate weights for genetic agent")
+    genetic_parser.add_argument("--pop_size", default="100", type=int,  help="Population size")
+    genetic_parser.add_argument("--generations", default="40", type=int, help="Number of generatinos")
+    genetic_parser.add_argument("--cx_pb", default="0.5", type=float, help="Crossover probability")
+    genetic_parser.add_argument("--mut_pb", default="0.2", type=float, help="Mutation probability")
+    genetic_parser.add_argument("--n_games", default="4", type=int, help="Number of games")
+    genetic_parser.add_argument("--seed", default=None, type=int, help="Optional random seed")
+
     args = parser.parse_args()
 
     match args.command:
@@ -193,6 +205,15 @@ def main() -> NoReturn:
             evaluate_agents_cli(args.agent1, args.agent2, args.games)
         case "demo":
             demo_game(args.agent1, args.agent2)
+        case "evolve":
+            weights = evolve_population(board_factory=lambda: Board(),
+                                        pop_size=args.pop_size,
+                                        generations=args.generations,
+                                        cx_pb=args.cx_pb,
+                                        mut_pb=args.mut_pb,
+                                        n_games=args.n_games,
+                                        seed=args.seed)
+            save_weights(weights)
 
     sys.exit(0)
 

@@ -3,7 +3,12 @@
 from tictactoe.agents.heuristic_agent import HeuristicAgent
 from tictactoe.agents.random_agent import RandomAgent
 from tictactoe.board import Board
-
+from tictactoe.agents.genetic_agent import (
+    GeneticAgent,
+    evolve_population,
+    save_weights,
+    load_weights,
+)
 
 class TestRandomAgent:
     """Tests for RandomAgent."""
@@ -161,3 +166,114 @@ class TestAgentInteraction:
 
         # Game should end
         assert board.is_terminal() or move_count == max_moves
+
+
+"""Tests for GeneticAgent implementation."""
+
+
+class TestGeneticAgent:
+    """Tests for GeneticAgent."""
+
+    def test_genetic_agent_creation(self) -> None:
+        """Test genetic agent initialization."""
+        weights = [0.1] * 9
+        agent = GeneticAgent(player=1, weights=weights)
+
+        assert agent.player == 1
+        assert agent.name == "Genetic"
+        assert len(agent.weights) == 9
+
+    def test_genetic_agent_requires_9_weights(self) -> None:
+        """Test that genetic agent validates weight length."""
+        try:
+            GeneticAgent(1, [0.0] * 8)  # wrong shape
+            raise AssertionError("Should have raised ValueError")
+        except ValueError as e:
+            assert "length 9" in str(e)
+
+    def test_genetic_agent_selects_valid_move(self, empty_board: Board) -> None:
+        """Test that genetic agent selects legal moves."""
+        weights = [0.5] * 9
+        agent = GeneticAgent(1, weights)
+
+        move = agent.select_move(empty_board)
+
+        assert move in empty_board.get_legal_moves()
+        assert 0 <= move <= 8
+
+    def test_genetic_agent_raises_on_no_moves(self) -> None:
+        """Test that genetic agent raises error when no legal moves exist."""
+        weights = [0.3] * 9
+        agent = GeneticAgent(1, weights)
+        board = Board()
+
+        # fill the board
+        for i in range(9):
+            board.make_move(i, 1 if i % 2 == 0 else -1)
+
+        try:
+            agent.select_move(board)
+            raise AssertionError("Should have raised ValueError")
+        except ValueError as e:
+            assert "No legal moves" in str(e)
+
+    def test_genetic_agent_takes_max_weight(self, empty_board: Board) -> None:
+        """Test that genetic agent selects the move with highest weight."""
+        # give cell 7 the largest weight
+        weights = [0.1] * 9
+        weights[7] = 2.0
+
+        agent = GeneticAgent(1, weights)
+        move = agent.select_move(empty_board)
+
+        assert move == 7
+
+
+class TestGeneticPersistence:
+    """Tests for saving and loading genetic weights."""
+
+    def test_save_and_load_weights(self, tmp_path) -> None:
+        """Test that weights can be saved and loaded."""
+        weights = [0.1 * i for i in range(9)]
+
+        # run inside temp directory
+        (tmp_path / "src/tictactoe/weights").mkdir(parents=True)
+        save_path = tmp_path / "src/tictactoe/weights/best"
+
+        # redirect save location
+        # monkeypatching not needed — change cwd
+        import os
+        cwd = os.getcwd()
+        os.chdir(tmp_path)
+
+        try:
+            save_weights(weights)
+            assert save_path.exists()
+
+            loaded = load_weights()
+
+            assert isinstance(loaded, list)
+            assert len(loaded) == 9
+            assert loaded == weights
+        finally:
+            os.chdir(cwd)
+
+
+class TestGeneticEvolution:
+    """Tests for population evolution."""
+
+    def test_evolve_population_smoke_test(self) -> None:
+        """Small evolution smoke test to ensure GA pipeline runs."""
+        best = evolve_population(
+            board_factory=lambda: Board(),
+            pop_size=6,
+            generations=2,
+            cx_pb=0.5,
+            mut_pb=0.2,
+            n_games=1,
+            seed=123,
+        )
+
+        assert isinstance(best, list)
+        assert len(best) == 9
+        assert all(isinstance(w, float) or isinstance(w, int) for w in best)
