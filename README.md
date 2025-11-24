@@ -32,14 +32,24 @@ uv run tictactoe --help
 
 ### Usage
 
-**Play against AI:**
+**Play against AI heuristic agent:**
 ```bash
 uv run tictactoe play --opponent heuristic --player X
 ```
 
+**Generate weights for Genetic agent:
+```bash
+uv run tictactoe evolve --pop_size 200 --generations 40 --n_games 40
+```
+
+**Play against Genetic agent:**
+```bash
+uv run tictactoe play --opponent genetic --player X
+```
+
 **Watch AI vs AI:**
 ```bash
-uv run tictactoe demo --agent1 heuristic --agent2 random
+uv run tictactoe demo --agent1 heuristic --agent2 genetic
 ```
 
 **Evaluate agents:**
@@ -81,8 +91,11 @@ Tic-Tac-Toe-AI-Strategy-Evolution-Plan/
 │       ├── agents/
 │       │   ├── __init__.py
 │       │   ├── base.py             # Abstract agent class
+│       │   ├── genetic_agent.py    # Genetic agent using DEAP (Distributed Evolutionary Algorithms in Python)
 │       │   ├── random_agent.py     # Random baseline
 │       │   └── heuristic_agent.py  # Strategic agent
+│       ├── weights/
+│       │   └──  best                # pickle file with weights for genetic agent
 │       ├── game_runner.py  # Game orchestration & evaluation
 │       └── cli.py          # Command-line interface
 ├── tests/
@@ -136,6 +149,27 @@ Tic-Tac-Toe-AI-Strategy-Evolution-Plan/
 
 ---
 
+## Features Implemented (Phase 2)
+✅ **Genetic Algorithm System:**
+- DEAP‑based evolutionary optimization,
+- Configurable population size, generations, crossover, mutation.
+
+✅ **GeneticAgent Implementation:**
+- Weight‑based policy engine (cell‑weights or feature‑weights),
+- Immediate tactical fallback:
+  - Win if possible,
+  - Block opponent win,
+  - Deterministic behavior ensures tactical correctness even with imperfect evolved weights.
+
+✅ **Persistence Layer:**
+- Save weights,
+- Load weights for reuse,
+- Compatible with CLI and integration tests.
+
+✅ **Evolution Framework:**
+- Multi‑game fitness evaluation,
+- Opponent diversity: RandomAgent, HeuristicAgent, GeneticAgent,
+
 ## Example Results
 
 **Heuristic vs Random (100 games):**
@@ -152,6 +186,23 @@ Agent1 wins:     0 ( 0.0%)
 Agent2 wins:     0 ( 0.0%)
 Draws:          10 (100.0%)
 ```
+
+**Genetic vs Heuristic (1000 games):**
+```
+Heuristic wins:   500 (50.0%)
+Genetic wins:   500 (50.0%)
+Draws:            0 ( 0.0%)
+Avg game length: 7.0 moves
+```
+
+**Genetic vs Random (1000 games):**
+```
+Random wins:   262 (26.2%)
+Genetic wins:   705 (70.5%)
+Draws:           33 ( 3.3%)
+Avg game length: 6.3 moves
+```
+
 *Perfect play leads to draws!*
 
 
