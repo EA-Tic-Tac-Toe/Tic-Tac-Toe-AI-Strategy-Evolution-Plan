@@ -4,12 +4,35 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 from typing import NoReturn
 
+import yaml
+
 from tictactoe.agents.base import Agent
-from tictactoe.agents.genetic_agent import GeneticAgent, save_weights, evolve_population, load_weights
+from tictactoe.agents.genetic_agent import (
+    GeneticAgent,
+    evolve_population,
+    load_weights,
+    save_weights,
+)
 from tictactoe.agents.heuristic_agent import HeuristicAgent
 from tictactoe.agents.random_agent import RandomAgent
+from tictactoe.analysis.evaluator import (
+    aggregate_outcomes_by_opponent,
+    load_evaluation,
+)
+from tictactoe.analysis.plots import (
+    plot_fitness_curve,
+    plot_outcome_bars,
+    plot_tuning_comparison,
+    plot_weight_heatmap,
+)
+from tictactoe.analysis.tuning import (
+    config_from_mapping,
+    export_tuning_results,
+    grid_search,
+)
 from tictactoe.board import Board
 from tictactoe.game_runner import evaluate_matchup, play_game
 
@@ -152,6 +175,85 @@ def evaluate_agents_cli(
     print("=" * 50 + "\n")
 
 
+def visualize_experiment_cli(experiment: str, output_dir: str) -> None:
+    """Generate plots for a saved experiment."""
+    experiment_path = Path(experiment)
+    if not experiment_path.exists():
+        msg = f"Experiment file not found: {experiment}"
+        raise FileNotFoundError(msg)
+
+    series = load_evaluation(experiment_path)
+    best_run = max(series.runs, key=lambda run: run.best_fitness)
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    aggregate_outcomes = aggregate_outcomes_by_opponent(series)
+    fitness_paths = plot_fitness_curve(
+        best_run.evolution.history,
+        output_path / f"run{best_run.run_id}_fitness",
+    )
+    outcome_paths = plot_outcome_bars(
+        aggregate_outcomes,
+        output_path / "outcomes",
+    )
+    heatmap_paths = plot_weight_heatmap(
+        best_run.evolution.best_weights,
+        output_path / f"run{best_run.run_id}_heatmap",
+    )
+
+    print("Generated plots:")
+    for label, paths in [
+        ("Fitness", fitness_paths),
+        ("Outcomes", outcome_paths),
+        ("Heatmap", heatmap_paths),
+    ]:
+        print(f"  {label}: {paths['png']} / {paths['svg']}")
+
+
+def tune_ga_cli(config_path: str, output_prefix: str | None) -> None:
+    """Run GA tuning based on YAML configuration."""
+    yaml_path = Path(config_path)
+    if not yaml_path.exists():
+        msg = f"Tuning config not found: {config_path}"
+        raise FileNotFoundError(msg)
+
+    with yaml_path.open("r", encoding="utf-8") as handle:
+        data = yaml.safe_load(handle)
+    if not isinstance(data, dict):
+        msg = "Tuning configuration must be a mapping"
+        raise ValueError(msg)
+
+    tuning_config = config_from_mapping(data)
+    records = grid_search(tuning_config)
+    best_record = max(records, key=lambda record: record.avg_best_fitness)
+
+    base = (
+        Path(output_prefix)
+        if output_prefix
+        else Path("results") / "tuning" / yaml_path.stem
+    )
+
+    artifacts = export_tuning_results(records, base)
+    comparison_paths = plot_tuning_comparison(
+        records,
+        base.with_name(base.name + "_comparison"),
+    )
+    print("Best configuration:")
+    print(f"  params = {best_record.params.to_dict()}")
+    print(f"  avg fitness = {best_record.avg_best_fitness:.3f}")
+    print(f"Tuning artifacts saved to: {artifacts['json']} / {artifacts['csv']}")
+    print(f"Comparison plot: {comparison_paths['png']} / {comparison_paths['svg']}")
+
+
+def heatmap_cli(weights_path: str, output_base: str) -> None:
+    """Render a heatmap for a saved weights file."""
+    weights_file = Path(weights_path)
+    weights = load_weights(weights_file)
+    target = Path(output_base)
+    paths = plot_weight_heatmap(weights, target)
+    print(f"Heatmap saved to: {paths['png']} / {paths['svg']}")
+
+
 def main() -> NoReturn:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -187,13 +289,87 @@ def main() -> NoReturn:
     demo_parser.add_argument("--agent1", default="heuristic", help="First agent")
     demo_parser.add_argument("--agent2", default="random", help="Second agent")
 
-    genetic_parser = subparsers.add_parser("evolve", help="Generate weights for genetic agent")
-    genetic_parser.add_argument("--pop_size", default="100", type=int,  help="Population size")
-    genetic_parser.add_argument("--generations", default="40", type=int, help="Number of generatinos")
-    genetic_parser.add_argument("--cx_pb", default="0.5", type=float, help="Crossover probability")
-    genetic_parser.add_argument("--mut_pb", default="0.2", type=float, help="Mutation probability")
-    genetic_parser.add_argument("--n_games", default="4", type=int, help="Number of games")
-    genetic_parser.add_argument("--seed", default=None, type=int, help="Optional random seed")
+    genetic_parser = subparsers.add_parser(
+        "evolve",
+        help="Generate weights for genetic agent",
+    )
+    genetic_parser.add_argument(
+        "--pop_size",
+        default="100",
+        type=int,
+        help="Population size",
+    )
+    genetic_parser.add_argument(
+        "--generations",
+        default="40",
+        type=int,
+        help="Number of generations",
+    )
+    genetic_parser.add_argument(
+        "--cx_pb",
+        default="0.5",
+        type=float,
+        help="Crossover probability",
+    )
+    genetic_parser.add_argument(
+        "--mut_pb",
+        default="0.2",
+        type=float,
+        help="Mutation probability",
+    )
+    genetic_parser.add_argument(
+        "--n_games",
+        default="4",
+        type=int,
+        help="Number of games",
+    )
+    genetic_parser.add_argument(
+        "--seed",
+        default=None,
+        type=int,
+        help="Optional random seed",
+    )
+
+    visualize_parser = subparsers.add_parser(
+        "visualize",
+        help="Generate plots from a saved experiment JSON",
+    )
+    visualize_parser.add_argument(
+        "--experiment",
+        required=True,
+        help="Path to experiment JSON (exported via analysis.evaluator)",
+    )
+    visualize_parser.add_argument(
+        "--output",
+        default="results/plots",
+        help="Directory for generated figures",
+    )
+
+    tune_parser = subparsers.add_parser(
+        "tune",
+        help="Run GA hyperparameter grid search",
+        description="Execute GA tuning using a YAML configuration file.",
+    )
+    tune_parser.add_argument("--config", required=True, help="Path to tuning YAML file")
+    tune_parser.add_argument(
+        "--output",
+        help="Optional output prefix (defaults to results/tuning/<config name>)",
+    )
+
+    heatmap_parser = subparsers.add_parser(
+        "heatmap",
+        help="Render heatmap for saved genetic weights",
+    )
+    heatmap_parser.add_argument(
+        "--weights",
+        required=True,
+        help="Path to weights file (pickle)",
+    )
+    heatmap_parser.add_argument(
+        "--output",
+        default="results/plots/weights_heatmap",
+        help="Output path prefix for heatmap images",
+    )
 
     args = parser.parse_args()
 
@@ -206,14 +382,22 @@ def main() -> NoReturn:
         case "demo":
             demo_game(args.agent1, args.agent2)
         case "evolve":
-            weights = evolve_population(board_factory=lambda: Board(),
-                                        pop_size=args.pop_size,
-                                        generations=args.generations,
-                                        cx_pb=args.cx_pb,
-                                        mut_pb=args.mut_pb,
-                                        n_games=args.n_games,
-                                        seed=args.seed)
+            weights = evolve_population(
+                board_factory=lambda: Board(),
+                pop_size=args.pop_size,
+                generations=args.generations,
+                cx_pb=args.cx_pb,
+                mut_pb=args.mut_pb,
+                n_games=args.n_games,
+                seed=args.seed,
+            )
             save_weights(weights)
+        case "visualize":
+            visualize_experiment_cli(args.experiment, args.output)
+        case "tune":
+            tune_ga_cli(args.config, args.output)
+        case "heatmap":
+            heatmap_cli(args.weights, args.output)
 
     sys.exit(0)
 

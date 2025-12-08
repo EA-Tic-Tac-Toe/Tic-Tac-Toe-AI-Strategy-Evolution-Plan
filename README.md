@@ -57,6 +57,51 @@ uv run tictactoe demo --agent1 heuristic --agent2 genetic
 uv run tictactoe evaluate --agent1 heuristic --agent2 random --games 1000
 ```
 
+**Visualize GA experiment analytics:**
+```bash
+uv run tictactoe visualize --experiment results/experiments/sample_experiment.json --output results/plots
+```
+
+**Run GA hyperparameter tuning:**
+```bash
+uv run tictactoe tune --config configs/tuning.yaml --output results/tuning/latest
+```
+
+**Render a weights heatmap:**
+```bash
+uv run tictactoe heatmap --weights src/tictactoe/weights/best --output results/plots/best_heatmap
+```
+
+### Evolution & Reporting Workflow
+
+1. **Evolve new weights** (saves to `src/tictactoe/weights/best`):
+   ```bash
+   uv run tictactoe evolve --pop_size 80 --generations 30 --cx_pb 0.5 --mut_pb 0.2 --n_games 4 --seed 123
+   ```
+2. **Run batched experiments + reports** (JSON/CSV + plots + summary + optional pickle export):
+   ```bash
+   uv run python scripts/run_batch.py \
+       --runs 5 \
+       --pop-size 80 \
+       --generations 30 \
+       --output results/experiments \
+       --prefix studyA \
+       --weights-out src/tictactoe/weights/best/best_weights.pkl
+   ```
+   The script exports:
+   - `*.json` + `*.csv` with full run histories,
+   - `*_summary.json` containing aggregate win/draw/loss rates,
+   - dark-mode plots (fitness curve, outcome bars, heatmap) under the same prefix,
+   - `weights/studyA_best.pkl` (or the path you provide) holding the best genome.
+3. **Generate additional visuals** from a stored experiment:
+   ```bash
+   uv run tictactoe visualize --experiment results/experiments/studyA_YYYYMMDD-HHMMSS.json --output results/plots/studyA
+   ```
+4. **Plot the final genome**:
+   ```bash
+   uv run tictactoe heatmap --weights src/tictactoe/weights/best --output results/plots/studyA_weights
+   ```
+
 ### Development
 
 **Run tests:**
@@ -84,26 +129,41 @@ Tic-Tac-Toe-AI-Strategy-Evolution-Plan/
 ├── README.md
 ├── pyproject.toml          # Project configuration
 ├── .python-version         # Python 3.14.0
+├── configs/
+│   └── tuning.yaml         # Example GA tuning grid
+├── scripts/
+│   └── run_batch.py        # Batch execution/export helper
 ├── src/
 │   └── tictactoe/
 │       ├── __init__.py
-│       ├── board.py        # Game board implementation
+│       ├── board.py
+│       ├── game_runner.py
+│       ├── cli.py
+│       ├── analysis/
+│       │   ├── __init__.py
+│       │   ├── evaluator.py
+│       │   ├── tuning.py
+│       │   └── plots.py
 │       ├── agents/
 │       │   ├── __init__.py
-│       │   ├── base.py             # Abstract agent class
-│       │   ├── genetic_agent.py    # Genetic agent using DEAP (Distributed Evolutionary Algorithms in Python)
-│       │   ├── random_agent.py     # Random baseline
-│       │   └── heuristic_agent.py  # Strategic agent
-│       ├── weights/
-│       │   └──  best                # pickle file with weights for genetic agent
-│       ├── game_runner.py  # Game orchestration & evaluation
-│       └── cli.py          # Command-line interface
+│       │   ├── base.py
+│       │   ├── genetic_agent.py
+│       │   ├── random_agent.py
+│       │   └── heuristic_agent.py
+│       └── weights/
+│           └── best (pickle with latest evolved genome)
 ├── tests/
-│   ├── conftest.py         # Pytest fixtures
+│   ├── conftest.py
 │   ├── test_board.py
 │   ├── test_agents.py
-│   └── test_game_runner.py
-└── notebooks/              # Jupyter notebooks for experiments
+│   ├── test_game_runner.py
+│   └── test_analysis.py
+├── results/
+│   ├── experiments/        # JSON/CSV exports from batch runs
+│   ├── plots/              # Generated figures (PNG/SVG)
+│   └── tuning/             # Grid-search outputs
+└── notebooks/
+    └── evolution_analysis.ipynb
 ```
 
 ---
@@ -170,6 +230,13 @@ Tic-Tac-Toe-AI-Strategy-Evolution-Plan/
 - Multi‑game fitness evaluation,
 - Opponent diversity: RandomAgent, HeuristicAgent, GeneticAgent,
 
+## Milestone 3 Highlights
+
+- **Analysis Toolkit:** `tictactoe.analysis.{evaluator,tuning,plots}` delivers repeated GA evaluations, grid-search tuning, and dark-mode Matplotlib charts (fitness curve, W/D/L bars, heatmaps, configuration comparisons).
+- **Batch Automation:** `scripts/run_batch.py` orchestrates multiple GA runs, logs per-run fitness, exports JSON/CSV summaries, generates presentation-ready plots, and stores the best genome (`--weights-out`).
+- **CLI Enhancements:** `tictactoe visualize/tune/heatmap` commands hook directly into the analysis modules for quick reporting.
+- **Notebook Workflow:** `notebooks/evolution_analysis.ipynb` demonstrates loading experiment artifacts, comparing runs, and interpreting results.
+
 ## Example Results
 
 **Heuristic vs Random (100 games):**
@@ -202,8 +269,6 @@ Genetic wins:   705 (70.5%)
 Draws:           33 ( 3.3%)
 Avg game length: 6.3 moves
 ```
-
-*Perfect play leads to draws!*
 
 
 ---

@@ -1,0 +1,9 @@
+# Example tuning grid for milestone 3 experiments
+populations: [24, 36]
+mutation_probs: [0.15, 0.25]
+crossover_probs: [0.4, 0.6]
+selections: ["tournament", "roulette"]
+generations: 100
+n_games: 10
+runs_per_setting: 2
+base_seed: 42
