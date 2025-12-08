@@ -1,0 +1,452 @@
+{
+  "records": [
+    {
+      "index": 0,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.15,
+        "cx_pb": 0.4,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.925,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.85,
+      "best_run": {
+        "seed": 43,
+        "best_fitness": 1.0,
+        "selection": "tournament",
+        "weights": [
+          -0.9027291842038587,
+          0.09162488372513433,
+          0.22649827371337028,
+          0.021673737287164263,
+          0.8293518350073634,
+          0.7219846919997113,
+          0.876782531172223,
+          0.17734976869157615,
+          0.4327504591898983
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.15,
+        "cx_pb": 0.4,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.75,
+      "max_best_fitness": 0.75,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 44,
+        "best_fitness": 0.75,
+        "selection": "roulette",
+        "weights": [
+          0.3764716464832505,
+          -0.924332950434017,
+          0.8337789206293325,
+          -0.1420146718919204,
+          0.8837963085328566,
+          -0.7656957031067562,
+          0.660963378412696,
+          -0.5034480454724946,
+          -0.4506845032723208
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.15,
+        "cx_pb": 0.6,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.975,
+      "max_best_fitness": 0.975,
+      "min_best_fitness": 0.975,
+      "best_run": {
+        "seed": 46,
+        "best_fitness": 0.975,
+        "selection": "tournament",
+        "weights": [
+          -0.3817472145624154,
+          -0.3965320832039061,
+          0.546380158904243,
+          0.10270808777854668,
+          0.5132108718799292,
+          -0.5922071804230995,
+          0.22056313926945936,
+          0.4603398479143635,
+          0.35346650055276463
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.15,
+        "cx_pb": 0.6,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.875,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 48,
+        "best_fitness": 1.0,
+        "selection": "roulette",
+        "weights": [
+          0.6605943579551918,
+          -0.340069435958396,
+          -0.3930051414340021,
+          -0.36146131482650534,
+          -0.13922920657564042,
+          -0.4164948919951075,
+          -0.3218247190311916,
+          -0.3244976387196117,
+          0.6832445001390803
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.25,
+        "cx_pb": 0.4,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.7124999999999999,
+      "max_best_fitness": 0.725,
+      "min_best_fitness": 0.7,
+      "best_run": {
+        "seed": 50,
+        "best_fitness": 0.725,
+        "selection": "tournament",
+        "weights": [
+          0.9534913785345394,
+          -0.5862906017383887,
+          -0.578327332786326,
+          0.025024755116314468,
+          -0.24633422342333666,
+          -0.18317917543424322,
+          0.4300745249567475,
+          -0.8985980206203074,
+          -0.4683626482290671
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.25,
+        "cx_pb": 0.4,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.975,
+      "max_best_fitness": 0.975,
+      "min_best_fitness": 0.975,
+      "best_run": {
+        "seed": 52,
+        "best_fitness": 0.975,
+        "selection": "roulette",
+        "weights": [
+          1.0726871579319233,
+          -0.4733067476551185,
+          -0.7864069172344519,
+          -0.3830498444126498,
+          -0.106804375080426,
+          -1.1780923662592635,
+          0.06232628472064541,
+          1.4440521582552728,
+          -0.4382314607310945
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.25,
+        "cx_pb": 0.6,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.925,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.85,
+      "best_run": {
+        "seed": 55,
+        "best_fitness": 1.0,
+        "selection": "tournament",
+        "weights": [
+          0.3976832816102478,
+          -0.3573569747520588,
+          0.028163632986343556,
+          -0.8321824282445665,
+          0.2679144202750243,
+          -0.5615087751828101,
+          -0.026325925162836716,
+          -0.03693917003019642,
+          0.7350772772222751
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "params": {
+        "pop_size": 24,
+        "mut_pb": 0.25,
+        "cx_pb": 0.6,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.8375,
+      "max_best_fitness": 0.925,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 57,
+        "best_fitness": 0.925,
+        "selection": "roulette",
+        "weights": [
+          -0.385932036250353,
+          -0.2159874765096314,
+          0.08687631136579216,
+          -0.40086045733668907,
+          -0.3739357293903458,
+          0.8198647051346963,
+          0.18695025327346992,
+          0.9290449028768669,
+          0.7517398632326251
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.15,
+        "cx_pb": 0.4,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.875,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 59,
+        "best_fitness": 1.0,
+        "selection": "tournament",
+        "weights": [
+          -0.25119187056464787,
+          0.16986488484093792,
+          1.4390908700873382,
+          -0.8885287651460346,
+          0.5816846652746417,
+          0.558821611498425,
+          0.4609273273238277,
+          0.8967688068392132,
+          0.6979987604769771
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.15,
+        "cx_pb": 0.4,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.875,
+      "max_best_fitness": 0.9,
+      "min_best_fitness": 0.85,
+      "best_run": {
+        "seed": 61,
+        "best_fitness": 0.9,
+        "selection": "roulette",
+        "weights": [
+          0.8282461487974271,
+          -0.8872354686991919,
+          -0.9291074076446797,
+          -0.4126378563651967,
+          -0.7158191782989267,
+          -0.25292641001361305,
+          0.23138841368607066,
+          -0.21947713580567818,
+          0.9395039649085226
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.15,
+        "cx_pb": 0.6,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.75,
+      "max_best_fitness": 0.75,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 62,
+        "best_fitness": 0.75,
+        "selection": "tournament",
+        "weights": [
+          -0.20419859562471038,
+          0.30937303469634525,
+          -0.7343647635710804,
+          -0.24287062357876943,
+          0.5347317717277407,
+          -0.9878170935872357,
+          -0.24002506838604476,
+          -0.6820683680187865,
+          0.387554419830181
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.15,
+        "cx_pb": 0.6,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.975,
+      "max_best_fitness": 0.975,
+      "min_best_fitness": 0.975,
+      "best_run": {
+        "seed": 64,
+        "best_fitness": 0.975,
+        "selection": "roulette",
+        "weights": [
+          -0.9263523921896697,
+          -1.0140404395141784,
+          -1.4212721332115916,
+          -0.8876850778359311,
+          -0.6615829038358514,
+          0.5595502860817982,
+          0.7345006456232057,
+          -0.8326681792298627,
+          -0.5645902800341911
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.25,
+        "cx_pb": 0.4,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 1.0,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 1.0,
+      "best_run": {
+        "seed": 66,
+        "best_fitness": 1.0,
+        "selection": "tournament",
+        "weights": [
+          0.295208752106949,
+          -0.2459811509713855,
+          -0.37913341690131763,
+          -0.19291677663797313,
+          -0.15782032680664693,
+          -0.8881039050332713,
+          -0.05251469307845946,
+          -0.17000853930969018,
+          0.30730422434364235
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.25,
+        "cx_pb": 0.4,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.875,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.75,
+      "best_run": {
+        "seed": 69,
+        "best_fitness": 1.0,
+        "selection": "roulette",
+        "weights": [
+          1.0057622425383628,
+          -0.454887658500313,
+          0.05117631176771435,
+          -0.3282089460685591,
+          0.7712201535968364,
+          -0.5669445595925158,
+          0.7777818475785256,
+          0.24990603415316914,
+          1.0792382066454338
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.25,
+        "cx_pb": 0.6,
+        "selection": "tournament"
+      },
+      "avg_best_fitness": 0.925,
+      "max_best_fitness": 0.95,
+      "min_best_fitness": 0.9,
+      "best_run": {
+        "seed": 71,
+        "best_fitness": 0.95,
+        "selection": "tournament",
+        "weights": [
+          0.14552394288627934,
+          -0.8531567610470645,
+          -0.9206160176600384,
+          -0.6461849783844422,
+          0.620646480788803,
+          0.7219422359147614,
+          0.3422245135676798,
+          -0.2650415621622051,
+          0.06356251683645864
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "params": {
+        "pop_size": 36,
+        "mut_pb": 0.25,
+        "cx_pb": 0.6,
+        "selection": "roulette"
+      },
+      "avg_best_fitness": 0.975,
+      "max_best_fitness": 1.0,
+      "min_best_fitness": 0.95,
+      "best_run": {
+        "seed": 72,
+        "best_fitness": 1.0,
+        "selection": "roulette",
+        "weights": [
+          0.7244543892841913,
+          0.06128562421429118,
+          -0.34089262379709173,
+          -1.268424885601136,
+          0.2162856739784213,
+          0.05139233148506461,
+          0.5431320016016086,
+          0.39322035793090315,
+          0.8788277591180089
+        ]
+      }
+    }
+  ]
+}

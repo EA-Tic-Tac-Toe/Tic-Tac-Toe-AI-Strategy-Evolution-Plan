@@ -264,7 +264,7 @@ def run_evolution(
         ngen=generations,
         stats=stats,
         halloffame=hof,
-        verbose=False,
+        verbose=True,
     )
 
     best = tuple(hof[0])
@@ -340,10 +340,12 @@ def save_weights(weights: Sequence[float], path: Path | None = None) -> None:
 
 def load_weights(path: Path | None = None) -> list[float]:
     """Load previously saved genome weights."""
-    target = path or Path("src") / "tictactoe" / "weights" / "best"
+    target = path or Path("src") / "tictactoe" / "weights" / "best" / "best_weights.pkl"
     if not target.exists():
         msg = "Weights file not found. \nPlease run: 'uv run tictactoe evolve' "
         raise FileNotFoundError(msg)
+    logger.info(f"\n\n\nLoading weights from {target}")
     with target.open("rb") as fp:
+        logger.info("Loading weights from %s", target)
         weights: list[float] = pickle.load(fp)
     return weights

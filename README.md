@@ -86,7 +86,7 @@ uv run tictactoe heatmap --weights src/tictactoe/weights/best --output results/p
        --generations 30 \
        --output results/experiments \
        --prefix studyA \
-       --weights-out weights/studyA_best.pkl
+       --weights-out src/tictactoe/weights/best/best_weights.pkl
    ```
    The script exports:
    - `*.json` + `*.csv` with full run histories,

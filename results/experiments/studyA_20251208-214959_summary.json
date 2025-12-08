@@ -1,7 +1,7 @@
 {
   "export": {
-    "json": "results\\experiments\\batch_20251208-204802.json",
-    "csv": "results\\experiments\\batch_20251208-204802.csv"
+    "json": "results\\experiments\\studyA_20251208-214959.json",
+    "csv": "results\\experiments\\studyA_20251208-214959.csv"
   },
   "best_run": {
     "run_id": 1,
@@ -22,14 +22,14 @@
     },
     {
       "opponent": "Random",
-      "wins": 1082,
-      "losses": 704,
-      "draws": 214,
+      "wins": 1077,
+      "losses": 706,
+      "draws": 217,
       "total_games": 2000,
-      "avg_game_length": 7.2795,
-      "win_rate": 0.541,
-      "draw_rate": 0.107,
-      "loss_rate": 0.352
+      "avg_game_length": 7.2725,
+      "win_rate": 0.5385,
+      "draw_rate": 0.1085,
+      "loss_rate": 0.353
     }
   ]
 }

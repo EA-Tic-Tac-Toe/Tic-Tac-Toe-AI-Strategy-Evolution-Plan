@@ -7,10 +7,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from tictactoe.analysis import evaluator, plots
+from tictactoe.analysis import evaluator
 from tictactoe.analysis.evaluator import aggregate_outcomes_by_opponent
 from tictactoe.agents.genetic_agent import save_weights
 from tictactoe.board import Board
+from tictactoe.cli import heatmap_cli, tune_ga_cli, visualize_experiment_cli
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,19 +121,6 @@ def main() -> None:
     best_run = max(series.runs, key=lambda run: run.best_fitness)
     aggregate = aggregate_outcomes_by_opponent(series)
 
-    plots.plot_fitness_curve(
-        best_run.evolution.history,
-        experiment_base.with_name(experiment_base.name + "_fitness"),
-    )
-    plots.plot_outcome_bars(
-        aggregate,
-        experiment_base.with_name(experiment_base.name + "_outcomes"),
-    )
-    plots.plot_weight_heatmap(
-        best_run.evolution.best_weights,
-        experiment_base.with_name(experiment_base.name + "_heatmap"),
-    )
-
     summary_path = experiment_base.with_name(experiment_base.name + "_summary.json")
     summary = {
         "export": {k: str(v) for k, v in export_paths.items()},
@@ -148,11 +136,23 @@ def main() -> None:
     weights_target = Path(args.weights_out)
     save_weights(best_run.evolution.best_weights, weights_target)
 
+    plots_dir = Path("results/plots") / experiment_base.name
+    visualize_experiment_cli(str(export_paths["json"]), str(plots_dir))
+
+    tune_output = Path("results/tuning/latest")
+    tune_ga_cli("configs/tuning.yaml", str(tune_output))
+
+    heatmap_output = Path("results/plots") / f"{experiment_base.name}_weights"
+    heatmap_cli(str(weights_target), str(heatmap_output))
+
     print("Experiment exports:")
     print(f"  JSON: {export_paths['json']}")
     print(f"  CSV:  {export_paths['csv']}")
     print(f"Summary: {summary_path}")
     print(f"Best weights saved to: {weights_target}")
+    print(f"Plots stored under: {plots_dir}")
+    print(f"Tuning artifacts under: {tune_output}")
+    print(f"Heatmap stored at: {heatmap_output}")
 
 
 if __name__ == "__main__":
