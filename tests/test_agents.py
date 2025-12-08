@@ -1,14 +1,15 @@
 """Tests for agent implementations."""
 
-from tictactoe.agents.heuristic_agent import HeuristicAgent
-from tictactoe.agents.random_agent import RandomAgent
-from tictactoe.board import Board
 from tictactoe.agents.genetic_agent import (
     GeneticAgent,
     evolve_population,
-    save_weights,
     load_weights,
+    save_weights,
 )
+from tictactoe.agents.heuristic_agent import HeuristicAgent
+from tictactoe.agents.random_agent import RandomAgent
+from tictactoe.board import Board
+
 
 class TestRandomAgent:
     """Tests for RandomAgent."""
@@ -276,4 +277,4 @@ class TestGeneticEvolution:
 
         assert isinstance(best, list)
         assert len(best) == 9
-        assert all(isinstance(w, float) or isinstance(w, int) for w in best)
+        assert all(isinstance(w, (float, int)) for w in best)

@@ -13,6 +13,8 @@ license = {text = "MIT"}
 dependencies = [
     "deap>=1.4.3",
     "numpy>=2.3.4",
+    "matplotlib>=3.9.2",
+    "pyyaml>=6.0.2",
 ]
 
 [project.scripts]
@@ -81,4 +83,5 @@ dev = [
     "pytest-cov>=7.0.0",
     "pytest-xdist>=3.8.0",
     "ruff>=0.14.4",
+    "types-PyYAML>=6.0.12",
 ]

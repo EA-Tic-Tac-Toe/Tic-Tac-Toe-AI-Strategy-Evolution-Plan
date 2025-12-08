@@ -1,0 +1,35 @@
+{
+  "export": {
+    "json": "results\\experiments\\batch_20251208-204802.json",
+    "csv": "results\\experiments\\batch_20251208-204802.csv"
+  },
+  "best_run": {
+    "run_id": 1,
+    "seed": 43,
+    "best_fitness": 1.0
+  },
+  "aggregate_outcomes": [
+    {
+      "opponent": "Heuristic",
+      "wins": 960,
+      "losses": 1000,
+      "draws": 40,
+      "total_games": 2000,
+      "avg_game_length": 6.16,
+      "win_rate": 0.48,
+      "draw_rate": 0.02,
+      "loss_rate": 0.5
+    },
+    {
+      "opponent": "Random",
+      "wins": 1082,
+      "losses": 704,
+      "draws": 214,
+      "total_games": 2000,
+      "avg_game_length": 7.2795,
+      "win_rate": 0.541,
+      "draw_rate": 0.107,
+      "loss_rate": 0.352
+    }
+  ]
+}
