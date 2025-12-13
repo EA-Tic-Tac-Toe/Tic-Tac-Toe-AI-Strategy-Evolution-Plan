@@ -180,3 +180,183 @@ def plot_tuning_comparison(
         ax.text(value + 0.01, y[idx], f"{value:.3f}", va="center")
 
     return _save_figure(fig, output_base)
+
+
+def plot_pareto_front(
+    objectives: Sequence[tuple[float, float]],
+    output_base: Path,
+    *,
+    highlight_idx: int | None = None,
+    size: str = "large",
+) -> dict[str, Path]:
+    """
+    Plot 2D Pareto front for multi-objective optimization.
+
+    Args:
+        objectives: List of (fitness, complexity) tuples
+        output_base: Output file path (without extension)
+        highlight_idx: Index of solution to highlight (optional)
+        size: "small" or "large"
+
+    Returns:
+        Dictionary with paths to generated PNG and SVG files
+    """
+    if not objectives:
+        raise ValueError("No objectives provided")
+
+    fitness_values = [obj[0] for obj in objectives]
+    complexity_values = [obj[1] for obj in objectives]
+
+    fig, ax = plt.subplots(figsize=_figure_size(size))
+
+    # Plot all solutions
+    ax.scatter(
+        complexity_values,
+        fitness_values,
+        s=100,
+        c="#4FD1C5",
+        marker="o",
+        alpha=0.7,
+        edgecolors="#EEEEEE",
+        linewidths=1.5,
+        label="Pareto Solutions",
+    )
+
+    # Highlight specific solution if requested
+    if highlight_idx is not None and 0 <= highlight_idx < len(objectives):
+        ax.scatter(
+            [complexity_values[highlight_idx]],
+            [fitness_values[highlight_idx]],
+            s=200,
+            c="#FF4136",
+            marker="*",
+            edgecolors="#FFFFFF",
+            linewidths=2,
+            label="Selected Solution",
+            zorder=10,
+        )
+
+    ax.set_title("Pareto Front: Fitness vs Complexity")
+    ax.set_xlabel("Complexity (L1-norm of weights)")
+    ax.set_ylabel("Fitness (Win Rate)")
+    ax.grid(True, color="#333333", linestyle="--", linewidth=0.7, alpha=0.6)
+    ax.legend(frameon=False, loc="best")
+
+    return _save_figure(fig, output_base)
+
+
+def plot_pareto_comparison(
+    pareto_fronts: Sequence[tuple[str, Sequence[tuple[float, float]]]],
+    output_base: Path,
+    *,
+    size: str = "large",
+) -> dict[str, Path]:
+    """
+    Compare multiple Pareto fronts on the same plot.
+
+    Args:
+        pareto_fronts: List of (label, objectives) tuples
+        output_base: Output file path (without extension)
+        size: "small" or "large"
+
+    Returns:
+        Dictionary with paths to generated PNG and SVG files
+    """
+    if not pareto_fronts:
+        raise ValueError("No Pareto fronts provided")
+
+    colors = ["#4FD1C5", "#E74C3C", "#F39C12", "#9B59B6", "#2ECC40"]
+
+    fig, ax = plt.subplots(figsize=_figure_size(size))
+
+    for idx, (label, objectives) in enumerate(pareto_fronts):
+        if not objectives:
+            continue
+
+        fitness_values = [obj[0] for obj in objectives]
+        complexity_values = [obj[1] for obj in objectives]
+
+        color = colors[idx % len(colors)]
+        ax.scatter(
+            complexity_values,
+            fitness_values,
+            s=100,
+            c=color,
+            marker="o",
+            alpha=0.7,
+            edgecolors="#EEEEEE",
+            linewidths=1.5,
+            label=label,
+        )
+
+    ax.set_title("Pareto Front Comparison")
+    ax.set_xlabel("Complexity (L1-norm of weights)")
+    ax.set_ylabel("Fitness (Win Rate)")
+    ax.grid(True, color="#333333", linestyle="--", linewidth=0.7, alpha=0.6)
+    ax.legend(frameon=False, loc="best")
+
+    return _save_figure(fig, output_base)
+
+
+def plot_deap_vs_jmetal(
+    deap_fitness: float,
+    deap_complexity: float,
+    jmetal_objectives: Sequence[tuple[float, float]],
+    output_base: Path,
+    *,
+    size: str = "large",
+) -> dict[str, Path]:
+    """
+    Compare DEAP single-objective result with jMetalPy Pareto front.
+
+    Args:
+        deap_fitness: DEAP solution fitness
+        deap_complexity: DEAP solution complexity (L1-norm)
+        jmetal_objectives: jMetalPy Pareto front objectives
+        output_base: Output file path (without extension)
+        size: "small" or "large"
+
+    Returns:
+        Dictionary with paths to generated PNG and SVG files
+    """
+    if not jmetal_objectives:
+        raise ValueError("No jMetalPy objectives provided")
+
+    jmetal_fitness = [obj[0] for obj in jmetal_objectives]
+    jmetal_complexity = [obj[1] for obj in jmetal_objectives]
+
+    fig, ax = plt.subplots(figsize=_figure_size(size))
+
+    # Plot jMetalPy Pareto front
+    ax.scatter(
+        jmetal_complexity,
+        jmetal_fitness,
+        s=100,
+        c="#4FD1C5",
+        marker="o",
+        alpha=0.7,
+        edgecolors="#EEEEEE",
+        linewidths=1.5,
+        label="jMetalPy (Pareto Front)",
+    )
+
+    # Plot DEAP single-objective result
+    ax.scatter(
+        [deap_complexity],
+        [deap_fitness],
+        s=200,
+        c="#E74C3C",
+        marker="^",
+        edgecolors="#FFFFFF",
+        linewidths=2,
+        label="DEAP (Single-Objective)",
+        zorder=10,
+    )
+
+    ax.set_title("DEAP vs jMetalPy Comparison")
+    ax.set_xlabel("Complexity (L1-norm of weights)")
+    ax.set_ylabel("Fitness (Win Rate)")
+    ax.grid(True, color="#333333", linestyle="--", linewidth=0.7, alpha=0.6)
+    ax.legend(frameon=False, loc="best")
+
+    return _save_figure(fig, output_base)

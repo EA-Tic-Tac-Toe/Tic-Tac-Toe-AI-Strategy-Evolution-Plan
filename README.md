@@ -2,7 +2,7 @@
 
 **Authors:** Adrian Jaśkowiec, Jakub Kubicki, Tomasz Makowski  
 **Python Version:** 3.14.0  
-**Libraries:** NumPy, DEAP, pytest, ruff, mypy
+**Libraries:** NumPy, DEAP, jMetalPy, pytest, ruff, mypy
 
 ## Overview
 
@@ -70,6 +70,43 @@ uv run tictactoe tune --config configs/tuning.yaml --output results/tuning/lates
 **Render a weights heatmap:**
 ```bash
 uv run tictactoe heatmap --weights src/tictactoe/weights/best --output results/plots/best_heatmap
+```
+
+### Multi-Objective Evolution with jMetalPy
+
+**Run multi-objective evolution (NSGA-II):**
+```bash
+uv run tictactoe evolve-jmetal --pop_size 100 --max_evaluations 25000 --algorithm NSGA-II --n_games 10
+```
+
+**Play against jMetalPy-evolved agent:**
+```bash
+uv run tictactoe play --opponent jmetal --player X
+```
+
+**Visualize Pareto front:**
+```bash
+uv run tictactoe pareto --pareto src/tictactoe/weights/best/pareto_front.pkl --output results/plots/pareto --strategy balanced
+```
+
+**Compare DEAP vs jMetalPy:**
+```bash
+uv run tictactoe compare \
+    --deap src/tictactoe/weights/best/best_weights.pkl \
+    --jmetal src/tictactoe/weights/best/pareto_front.pkl \
+    --output results/experiments/comparison
+```
+
+### Feature-Based Evolution with Self-Play
+
+**Run feature-based evolution:**
+```bash
+uv run tictactoe evolve-features --pop_size 100 --generations 50 --n_games 10 --self_play 0.3
+```
+
+**Play against feature-based agent:**
+```bash
+uv run tictactoe play --opponent feature --player X
 ```
 
 ### Evolution & Reporting Workflow
@@ -237,6 +274,129 @@ Tic-Tac-Toe-AI-Strategy-Evolution-Plan/
 - **CLI Enhancements:** `tictactoe visualize/tune/heatmap` commands hook directly into the analysis modules for quick reporting.
 - **Notebook Workflow:** `notebooks/evolution_analysis.ipynb` demonstrates loading experiment artifacts, comparing runs, and interpreting results.
 
+## Milestone 4: Multi-Objective Optimization with jMetalPy
+
+✅ **Multi-Objective Evolution:**
+- **jMetalPy Integration:** NSGA-II and NSGA-III algorithms for multi-objective optimization
+- **Dual Objectives:** 
+  - Objective 1: Maximize fitness (win rate against opponents)
+  - Objective 2: Minimize complexity (L1-norm of weights)
+- **Pareto Front:** Discover multiple optimal solutions with different trade-offs
+
+✅ **JMetalAgent Implementation:**
+- Weight-based policy like GeneticAgent
+- Evolved using multi-objective algorithms
+- Multiple solution strategies: fitness-focused, simplicity-focused, or balanced
+
+✅ **Comparison Framework:**
+- Direct comparison between DEAP (single-objective) and jMetalPy (multi-objective)
+- Pareto front visualization
+- Trade-off analysis between performance and model complexity
+- Solution selection strategies
+
+✅ **CLI Commands:**
+- `evolve-jmetal`: Run multi-objective evolution with NSGA-II or NSGA-III
+- `compare`: Compare DEAP and jMetalPy results
+- `pareto`: Visualize and select solutions from Pareto front
+- Play against jMetalPy-evolved agents
+
+✅ **Analysis Tools:**
+- Pareto front plotting
+- DEAP vs jMetalPy comparison plots
+- Weight heatmaps for different selection strategies
+- Interactive Jupyter notebook: `notebooks/jmetal_comparison.ipynb`
+
+### Why Multi-Objective Optimization?
+
+**DEAP (Single-Objective):**
+- Maximizes only fitness (win rate)
+- Returns a single "best" solution
+- May produce complex, overfitted solutions
+
+**jMetalPy (Multi-Objective):**
+- Optimizes both fitness AND simplicity
+- Returns a Pareto front of optimal trade-offs
+- Allows selection based on priorities:
+  - **Fitness strategy:** Best performance, may be complex
+  - **Simple strategy:** Minimal complexity, interpretable
+  - **Balanced strategy:** Compromise between both objectives
+
+**Use Cases:**
+- When model interpretability matters
+- When you want to avoid overfitting
+- When multiple stakeholders have different priorities
+- When exploring design space is valuable
+
+---
+
+## Milestone 5: Feature-Based Evolution with Self-Play
+
+### Rationale
+
+**Traditional Approach (Cell Weights):**
+- 9 individual weights (one per board position)
+- No strategic knowledge encoded
+- High dimensionality
+- Position-specific, not generalizable
+
+**Feature-Based Approach:**
+- 5 strategic features:
+  - **Center control:** Value of occupying center (position 4)
+  - **Corner control:** Value of corner positions (0, 2, 6, 8)
+  - **Edge control:** Value of edge positions (1, 3, 5, 7)
+  - **Win threat:** Value of moves creating immediate wins
+  - **Block threat:** Value of moves blocking opponent wins
+- Reduced genome size (9 → 5 parameters)
+- Strategic knowledge encoded
+- More interpretable weights
+
+**Self-Play Co-Evolution:**
+- Traditional fitness: Only plays against fixed opponents (Random, Heuristic)
+- Self-play fitness: Also plays against members of evolving population
+- Benefits:
+  - Population adapts to counter each other's strategies
+  - Prevents overfitting to specific opponents
+  - Encourages diverse, robust strategies
+  - Simulates competitive environment
+
+### Usage
+
+```bash
+# Basic feature evolution
+uv run tictactoe evolve-features --pop_size 100 --generations 50
+
+# With custom self-play fraction (30% of games against population)
+uv run tictactoe evolve-features --pop_size 100 --generations 50 --self_play 0.3
+
+# High self-play for competitive co-evolution
+uv run tictactoe evolve-features --pop_size 150 --generations 100 --self_play 0.5 --n_games 15
+
+# Reproducible run
+uv run tictactoe evolve-features --seed 42
+```
+
+### Features
+
+- ✅ 5-feature genome (reduced from 9 weights)
+- ✅ Strategic feature extraction (position + tactical features)
+- ✅ Self-play fitness evaluation (configurable 0.0-1.0)
+- ✅ Competitive co-evolution
+- ✅ CLI integration
+- ✅ Comprehensive test coverage
+
+### Comparison: Cell-Based vs Feature-Based
+
+| Aspect | Cell Weights | Feature Weights |
+|--------|--------------|-----------------|
+| Genome size | 9 parameters | 5 parameters |
+| Interpretability | Low (position-specific) | High (strategic meaning) |
+| Search space | Larger | Smaller |
+| Training opponents | Fixed (Random, Heuristic) | Fixed + Self-play |
+| Strategic knowledge | None (learned from scratch) | Encoded in features |
+| Generalization | Position-specific | Strategy-based |
+
+---
+
 ## Example Results
 
 **Heuristic vs Random (100 games):**
@@ -273,14 +433,15 @@ Avg game length: 6.3 moves
 
 ---
 
-## Estimated Timeline
+## Timeline Status
 
-| Week | Task                                      |
-|------|-------------------------------------------|
-| 2    | Game environment + baseline agent         |
-| 4    | GA setup with DEAP                        |
-| 6    | Fitness evaluation design + initial experiments |
-| 8    | Optimization, tuning, visualization       |
-| 9    | Optional jMetalPy experiments             |
-| 10   | Report + presentation preparation         |
+| Week | Task                                      | Status |
+|------|-------------------------------------------|--------|
+| 2    | Game environment + baseline agent         | ✅ Complete |
+| 4    | GA setup with DEAP                        | ✅ Complete |
+| 6    | Fitness evaluation design + initial experiments | ✅ Complete |
+| 8    | Optimization, tuning, visualization       | ✅ Complete |
+| 9    | jMetalPy multi-objective experiments      | ✅ Complete |
+| 10   | Feature-based evolution with self-play    | ✅ Complete |
+| 11   | Report + presentation preparation         | 🔄 In Progress |
 

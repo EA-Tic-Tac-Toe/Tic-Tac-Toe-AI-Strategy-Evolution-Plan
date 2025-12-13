@@ -10,6 +10,12 @@ from typing import NoReturn
 import yaml
 
 from tictactoe.agents.base import Agent
+from tictactoe.agents.feature_agent import (
+    FeatureGeneticAgent,
+    load_feature_weights,
+    run_feature_evolution,
+    save_feature_weights,
+)
 from tictactoe.agents.genetic_agent import (
     GeneticAgent,
     evolve_population,
@@ -17,14 +23,24 @@ from tictactoe.agents.genetic_agent import (
     save_weights,
 )
 from tictactoe.agents.heuristic_agent import HeuristicAgent
+from tictactoe.agents.jmetal_agent import (
+    JMetalAgent,
+    load_pareto_front,
+    run_multiobjective_evolution,
+    save_pareto_front,
+    select_solution_from_pareto,
+)
 from tictactoe.agents.random_agent import RandomAgent
 from tictactoe.analysis.evaluator import (
     aggregate_outcomes_by_opponent,
+    compare_deap_jmetal,
     load_evaluation,
 )
 from tictactoe.analysis.plots import (
+    plot_deap_vs_jmetal,
     plot_fitness_curve,
     plot_outcome_bars,
+    plot_pareto_front,
     plot_tuning_comparison,
     plot_weight_heatmap,
 )
@@ -59,6 +75,16 @@ def create_agent(agent_type: str, player: int) -> Agent:
         case "genetic":
             weights = load_weights()
             return GeneticAgent(player, weights)
+        case "feature":
+            weights = load_feature_weights()
+            return FeatureGeneticAgent(player, weights)
+        case "jmetal":
+            # Load Pareto front and select solution
+            result = load_pareto_front(
+                Path("src/tictactoe/weights/best/pareto_front.pkl")
+            )
+            weights = select_solution_from_pareto(result, strategy="balanced")
+            return JMetalAgent(player, weights)
         case _:
             msg = f"Unknown agent type: {agent_type}"
             raise ValueError(msg)
@@ -245,6 +271,133 @@ def tune_ga_cli(config_path: str, output_prefix: str | None) -> None:
     print(f"Comparison plot: {comparison_paths['png']} / {comparison_paths['svg']}")
 
 
+def evolve_jmetal_cli(
+    pop_size: int,
+    max_evaluations: int,
+    algorithm: str,
+    n_games: int,
+    seed: int | None,
+) -> None:
+    """Run jMetalPy multi-objective evolution."""
+    print(f"\n🧬 Running {algorithm} Multi-Objective Evolution")
+    print(f"   Population: {pop_size}")
+    print(f"   Max Evaluations: {max_evaluations}")
+    print(f"   Games per evaluation: {n_games}")
+    if seed:
+        print(f"   Seed: {seed}")
+    print()
+
+    result = run_multiobjective_evolution(
+        pop_size=pop_size,
+        max_evaluations=max_evaluations,
+        algorithm=algorithm,
+        n_games=n_games,
+        seed=seed,
+    )
+
+    print(f"\n✅ Evolution complete!")
+    print(f"   Pareto front size: {len(result.pareto_front)}")
+    print(f"   Best fitness: {result.history[-1].avg_fitness:.3f}")
+    print(f"   Avg complexity: {result.history[-1].avg_complexity:.3f}")
+
+    # Save Pareto front
+    output_path = Path("src/tictactoe/weights/best/pareto_front.pkl")
+    save_pareto_front(result, output_path)
+    print(f"\n💾 Pareto front saved to: {output_path}")
+
+    # Plot Pareto front
+    plot_path = Path("results/plots/pareto_front")
+    paths = plot_pareto_front(result.pareto_objectives, plot_path)
+    print(f"📊 Pareto plot saved to: {paths['png']}")
+
+
+def compare_cli(deap_path: str, jmetal_path: str, output: str) -> None:
+    """Compare DEAP and jMetalPy results."""
+    import json
+
+    print("\n📊 Comparing DEAP vs jMetalPy Results\n")
+
+    # Load DEAP weights
+    deap_weights = load_weights(Path(deap_path))
+    print(f"✅ Loaded DEAP weights from: {deap_path}")
+
+    # Load jMetalPy Pareto front
+    jmetal_result = load_pareto_front(Path(jmetal_path))
+    print(f"✅ Loaded jMetalPy Pareto front from: {jmetal_path}")
+    print(f"   Pareto front size: {len(jmetal_result.pareto_front)}")
+
+    # Compare
+    comparison = compare_deap_jmetal(
+        deap_weights,
+        jmetal_result.pareto_front,
+        jmetal_result.pareto_objectives,
+        selection_strategy="balanced",
+    )
+
+    print(f"\n📈 Results:")
+    print(f"   DEAP:")
+    print(f"      Complexity: {comparison.deap_complexity:.2f}")
+    print(f"   jMetalPy (selected solution):")
+    print(f"      Pareto size: {comparison.jmetal_pareto_size}")
+    print(f"      Best fitness: {comparison.jmetal_best_fitness:.3f}")
+    print(f"      Best complexity: {comparison.jmetal_best_complexity:.2f}")
+
+    # Save comparison JSON
+    output_json = Path(output).with_suffix(".json")
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    with output_json.open("w") as f:
+        json.dump(comparison.to_dict(), f, indent=2)
+    print(f"\n💾 Comparison saved to: {output_json}")
+
+    # Plot comparison
+    deap_complexity = sum(abs(w) for w in deap_weights)
+    plot_path = Path(output).with_name(Path(output).stem + "_comparison")
+    paths = plot_deap_vs_jmetal(
+        0.0,  # Placeholder fitness
+        deap_complexity,
+        jmetal_result.pareto_objectives,
+        plot_path,
+    )
+    print(f"📊 Comparison plot saved to: {paths['png']}")
+
+
+def pareto_cli(pareto_path: str, output: str, strategy: str) -> None:
+    """Visualize Pareto front and select solution."""
+    print(f"\n📊 Analyzing Pareto Front: {pareto_path}\n")
+
+    result = load_pareto_front(Path(pareto_path))
+    print(f"✅ Loaded Pareto front")
+    print(f"   Size: {len(result.pareto_front)}")
+    print(f"   Algorithm: {result.algorithm}")
+
+    # Display statistics
+    fitness_values = [obj[0] for obj in result.pareto_objectives]
+    complexity_values = [obj[1] for obj in result.pareto_objectives]
+
+    print(f"\n📈 Statistics:")
+    print(f"   Fitness range: [{min(fitness_values):.3f}, {max(fitness_values):.3f}]")
+    print(
+        f"   Complexity range: [{min(complexity_values):.2f}, {max(complexity_values):.2f}]"
+    )
+
+    # Select solution
+    selected_weights = select_solution_from_pareto(result, strategy=strategy)
+    selected_idx = result.pareto_front.index(selected_weights)
+    selected_fitness, selected_complexity = result.pareto_objectives[selected_idx]
+
+    print(f"\n🎯 Selected solution (strategy={strategy}):")
+    print(f"   Fitness: {selected_fitness:.3f}")
+    print(f"   Complexity: {selected_complexity:.2f}")
+    print(f"   Weights: {list(selected_weights)}")
+
+    # Plot with highlighted solution
+    plot_path = Path(output)
+    paths = plot_pareto_front(
+        result.pareto_objectives, plot_path, highlight_idx=selected_idx
+    )
+    print(f"\n📊 Plot saved to: {paths['png']}")
+
+
 def heatmap_cli(weights_path: str, output_base: str) -> None:
     """Render a heatmap for a saved weights file."""
     weights_file = Path(weights_path)
@@ -267,7 +420,7 @@ def main() -> NoReturn:
     play_parser = subparsers.add_parser("play", help="Play against AI")
     play_parser.add_argument(
         "--opponent",
-        choices=["random", "heuristic", "genetic"],
+        choices=["random", "heuristic", "genetic", "feature", "jmetal"],
         default="heuristic",
         help="AI opponent type",
     )
@@ -330,6 +483,54 @@ def main() -> NoReturn:
         help="Optional random seed",
     )
 
+    # Feature-based evolution
+    feature_parser = subparsers.add_parser(
+        "evolve-features",
+        help="Evolve feature-based agent with self-play",
+    )
+    feature_parser.add_argument(
+        "--pop_size",
+        default=100,
+        type=int,
+        help="Population size",
+    )
+    feature_parser.add_argument(
+        "--generations",
+        default=50,
+        type=int,
+        help="Number of generations",
+    )
+    feature_parser.add_argument(
+        "--cx_pb",
+        default=0.5,
+        type=float,
+        help="Crossover probability",
+    )
+    feature_parser.add_argument(
+        "--mut_pb",
+        default=0.2,
+        type=float,
+        help="Mutation probability",
+    )
+    feature_parser.add_argument(
+        "--n_games",
+        default=10,
+        type=int,
+        help="Number of games per opponent",
+    )
+    feature_parser.add_argument(
+        "--self_play",
+        default=0.3,
+        type=float,
+        help="Fraction of games for self-play (0.0-1.0)",
+    )
+    feature_parser.add_argument(
+        "--seed",
+        default=None,
+        type=int,
+        help="Random seed for reproducibility",
+    )
+
     visualize_parser = subparsers.add_parser(
         "visualize",
         help="Generate plots from a saved experiment JSON",
@@ -371,6 +572,85 @@ def main() -> NoReturn:
         help="Output path prefix for heatmap images",
     )
 
+    # jMetalPy multi-objective evolution
+    jmetal_parser = subparsers.add_parser(
+        "evolve-jmetal",
+        help="Run multi-objective evolution with jMetalPy",
+    )
+    jmetal_parser.add_argument(
+        "--pop_size",
+        default=100,
+        type=int,
+        help="Population size",
+    )
+    jmetal_parser.add_argument(
+        "--max_evaluations",
+        default=25000,
+        type=int,
+        help="Maximum number of fitness evaluations",
+    )
+    jmetal_parser.add_argument(
+        "--algorithm",
+        choices=["NSGA-II", "NSGA-III"],
+        default="NSGA-II",
+        help="Multi-objective algorithm to use",
+    )
+    jmetal_parser.add_argument(
+        "--n_games",
+        default=10,
+        type=int,
+        help="Number of games per opponent for fitness evaluation",
+    )
+    jmetal_parser.add_argument(
+        "--seed",
+        default=None,
+        type=int,
+        help="Random seed for reproducibility",
+    )
+
+    # Compare DEAP vs jMetalPy
+    compare_parser = subparsers.add_parser(
+        "compare",
+        help="Compare DEAP and jMetalPy evolution results",
+    )
+    compare_parser.add_argument(
+        "--deap",
+        required=True,
+        help="Path to DEAP weights file (pickle)",
+    )
+    compare_parser.add_argument(
+        "--jmetal",
+        required=True,
+        help="Path to jMetalPy Pareto front file (pickle)",
+    )
+    compare_parser.add_argument(
+        "--output",
+        default="results/experiments/comparison",
+        help="Output path prefix for comparison results",
+    )
+
+    # Pareto front visualization and selection
+    pareto_parser = subparsers.add_parser(
+        "pareto",
+        help="Visualize and select from Pareto front",
+    )
+    pareto_parser.add_argument(
+        "--pareto",
+        required=True,
+        help="Path to Pareto front file (pickle)",
+    )
+    pareto_parser.add_argument(
+        "--output",
+        default="results/plots/pareto_analysis",
+        help="Output path prefix for plots",
+    )
+    pareto_parser.add_argument(
+        "--strategy",
+        choices=["balanced", "fitness", "simple"],
+        default="balanced",
+        help="Solution selection strategy from Pareto front",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -398,6 +678,39 @@ def main() -> NoReturn:
             tune_ga_cli(args.config, args.output)
         case "heatmap":
             heatmap_cli(args.weights, args.output)
+        case "evolve-features":
+            print(f"\n🧬 Feature-Based Evolution with Self-Play")
+            print(f"   Population: {args.pop_size}")
+            print(f"   Generations: {args.generations}")
+            print(f"   Self-play fraction: {args.self_play:.1%}")
+            print()
+            result = run_feature_evolution(
+                board_factory=lambda: Board(),
+                pop_size=args.pop_size,
+                generations=args.generations,
+                cx_pb=args.cx_pb,
+                mut_pb=args.mut_pb,
+                n_games=args.n_games,
+                seed=args.seed,
+                self_play_fraction=args.self_play,
+            )
+            save_feature_weights(result.best_weights)
+            print(f"\n✅ Evolution complete!")
+            print(f"   Best fitness: {result.best_fitness:.3f}")
+            print(f"   Feature weights: {list(result.best_weights)}")
+            print(f"   Saved to: src/tictactoe/weights/best/feature_weights.pkl")
+        case "evolve-jmetal":
+            evolve_jmetal_cli(
+                args.pop_size,
+                args.max_evaluations,
+                args.algorithm,
+                args.n_games,
+                args.seed,
+            )
+        case "compare":
+            compare_cli(args.deap, args.jmetal, args.output)
+        case "pareto":
+            pareto_cli(args.pareto, args.output, args.strategy)
 
     sys.exit(0)
 
