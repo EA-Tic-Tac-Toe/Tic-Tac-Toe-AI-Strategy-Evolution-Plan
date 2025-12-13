@@ -209,7 +209,9 @@ def aggregate_outcomes_by_opponent(
 def run_evaluation_series(config: EvaluationConfig) -> EvaluationSeriesResult:
     """Execute multiple GA runs and evaluate each champion."""
     runs: list[EvaluationRun] = []
-    print(f"Starting evaluation series: runs={config.runs}, pop={config.pop_size}, gens={config.generations}")
+    print(
+        f"Starting evaluation series: runs={config.runs}, pop={config.pop_size}, gens={config.generations}"
+    )
     for run_idx in range(config.runs):
         print(f"  Running evaluation {run_idx + 1}/{config.runs}...")
         run_seed = config.base_seed + run_idx
@@ -381,3 +383,126 @@ def load_evaluation(json_path: Path) -> EvaluationSeriesResult:
             ),
         )
     return EvaluationSeriesResult(config=config, runs=tuple(runs))
+
+
+# --------------------------
+# jMetalPy Comparison Tools
+# --------------------------
+
+
+@dataclass(frozen=True)
+class ComparisonResult:
+    """Comparison between DEAP and jMetalPy evolution results."""
+
+    deap_fitness: float
+    deap_complexity: float
+    deap_weights: tuple[float, ...]
+    jmetal_pareto_size: int
+    jmetal_best_fitness: float
+    jmetal_best_complexity: float
+    jmetal_selected_weights: tuple[float, ...]
+    jmetal_objectives: tuple[tuple[float, float], ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "deap": {
+                "fitness": self.deap_fitness,
+                "complexity": self.deap_complexity,
+                "weights": list(self.deap_weights),
+            },
+            "jmetal": {
+                "pareto_size": self.jmetal_pareto_size,
+                "best_fitness": self.jmetal_best_fitness,
+                "best_complexity": self.jmetal_best_complexity,
+                "selected_weights": list(self.jmetal_selected_weights),
+                "objectives": [
+                    {"fitness": obj[0], "complexity": obj[1]}
+                    for obj in self.jmetal_objectives
+                ],
+            },
+        }
+
+
+def compare_deap_jmetal(
+    deap_weights: Sequence[float],
+    jmetal_pareto_front: Sequence[tuple[float, ...]],
+    jmetal_objectives: Sequence[tuple[float, float]],
+    selection_strategy: str = "balanced",
+) -> ComparisonResult:
+    """
+    Compare DEAP single-objective result with jMetalPy multi-objective results.
+
+    Args:
+        deap_weights: Best weights from DEAP evolution
+        jmetal_pareto_front: Pareto front solutions from jMetalPy
+        jmetal_objectives: Corresponding (fitness, complexity) values
+        selection_strategy: How to select from Pareto front ("balanced", "fitness", "simple")
+
+    Returns:
+        ComparisonResult with metrics for both approaches
+    """
+    # Calculate DEAP complexity
+    deap_complexity = sum(abs(w) for w in deap_weights)
+
+    # We need to evaluate DEAP fitness, but for now we'll use a placeholder
+    # In practice, you'd evaluate it the same way as during evolution
+    deap_fitness = 0.0  # Placeholder - should be evaluated
+
+    # Find best fitness in jMetal pareto front
+    best_fitness_idx = max(
+        range(len(jmetal_objectives)), key=lambda i: jmetal_objectives[i][0]
+    )
+    jmetal_best_fitness = jmetal_objectives[best_fitness_idx][0]
+
+    # Find best (lowest) complexity
+    best_complexity_idx = min(
+        range(len(jmetal_objectives)), key=lambda i: jmetal_objectives[i][1]
+    )
+    jmetal_best_complexity = jmetal_objectives[best_complexity_idx][1]
+
+    # Select solution based on strategy
+    if selection_strategy == "fitness":
+        selected_idx = best_fitness_idx
+    elif selection_strategy == "simple":
+        selected_idx = best_complexity_idx
+    else:  # balanced
+        # Find solution closest to ideal point (max fitness, min complexity)
+        fitness_values = [obj[0] for obj in jmetal_objectives]
+        complexity_values = [obj[1] for obj in jmetal_objectives]
+
+        max_fitness = max(fitness_values)
+        min_fitness = min(fitness_values)
+        max_complexity = max(complexity_values)
+        min_complexity = min(complexity_values)
+
+        fitness_range = max_fitness - min_fitness if max_fitness != min_fitness else 1.0
+        complexity_range = (
+            max_complexity - min_complexity if max_complexity != min_complexity else 1.0
+        )
+
+        best_distance = float("inf")
+        selected_idx = 0
+
+        for i, (fitness, complexity) in enumerate(jmetal_objectives):
+            norm_fitness = (fitness - min_fitness) / fitness_range
+            norm_complexity = (complexity - min_complexity) / complexity_range
+
+            # Distance to ideal (1, 0)
+            distance = ((1.0 - norm_fitness) ** 2 + norm_complexity**2) ** 0.5
+
+            if distance < best_distance:
+                best_distance = distance
+                selected_idx = i
+
+    jmetal_selected_weights = jmetal_pareto_front[selected_idx]
+
+    return ComparisonResult(
+        deap_fitness=deap_fitness,
+        deap_complexity=deap_complexity,
+        deap_weights=tuple(deap_weights),
+        jmetal_pareto_size=len(jmetal_pareto_front),
+        jmetal_best_fitness=jmetal_best_fitness,
+        jmetal_best_complexity=jmetal_best_complexity,
+        jmetal_selected_weights=jmetal_selected_weights,
+        jmetal_objectives=tuple(jmetal_objectives),
+    )

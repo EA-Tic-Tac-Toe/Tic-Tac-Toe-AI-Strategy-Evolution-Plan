@@ -106,6 +106,7 @@ class GeneticAgent(Agent):
 # Evolution / Trainer
 # --------------------------
 
+
 def _evaluate_individual(  # pragma: no cover - exercised indirectly
     individual: list[float],
     player: int,
@@ -332,7 +333,7 @@ def evolve_population(
 
 def save_weights(weights: Sequence[float], path: Path | None = None) -> None:
     """Persist genome weights to disk."""
-    target = path or Path("src") / "tictactoe" / "weights" / "best"
+    target = path or Path("src") / "tictactoe" / "weights" / "best" / "best_weights.pkl"
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("wb") as fp:
         pickle.dump(list(weights), fp)

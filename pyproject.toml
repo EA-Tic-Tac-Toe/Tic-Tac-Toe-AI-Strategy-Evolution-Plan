@@ -15,6 +15,7 @@ dependencies = [
     "numpy>=2.3.4",
     "matplotlib>=3.9.2",
     "pyyaml>=6.0.2",
+    "jmetalpy>=1.7.0",
 ]
 
 [project.scripts]
