@@ -295,7 +295,7 @@ def evolve_jmetal_cli(
         seed=seed,
     )
 
-    print(f"\n✅ Evolution complete!")
+    print("\n✅ Evolution complete!")
     print(f"   Pareto front size: {len(result.pareto_front)}")
     print(f"   Best fitness: {result.history[-1].avg_fitness:.3f}")
     print(f"   Avg complexity: {result.history[-1].avg_complexity:.3f}")
@@ -334,10 +334,10 @@ def compare_cli(deap_path: str, jmetal_path: str, output: str) -> None:
         selection_strategy="balanced",
     )
 
-    print(f"\n📈 Results:")
-    print(f"   DEAP:")
+    print("\n📈 Results:")
+    print("   DEAP:")
     print(f"      Complexity: {comparison.deap_complexity:.2f}")
-    print(f"   jMetalPy (selected solution):")
+    print("   jMetalPy (selected solution):")
     print(f"      Pareto size: {comparison.jmetal_pareto_size}")
     print(f"      Best fitness: {comparison.jmetal_best_fitness:.3f}")
     print(f"      Best complexity: {comparison.jmetal_best_complexity:.2f}")
@@ -366,7 +366,7 @@ def pareto_cli(pareto_path: str, output: str, strategy: str) -> None:
     print(f"\n📊 Analyzing Pareto Front: {pareto_path}\n")
 
     result = load_pareto_front(Path(pareto_path))
-    print(f"✅ Loaded Pareto front")
+    print("✅ Loaded Pareto front")
     print(f"   Size: {len(result.pareto_front)}")
     print(f"   Algorithm: {result.algorithm}")
 
@@ -374,7 +374,7 @@ def pareto_cli(pareto_path: str, output: str, strategy: str) -> None:
     fitness_values = [obj[0] for obj in result.pareto_objectives]
     complexity_values = [obj[1] for obj in result.pareto_objectives]
 
-    print(f"\n📈 Statistics:")
+    print("\n📈 Statistics:")
     print(f"   Fitness range: [{min(fitness_values):.3f}, {max(fitness_values):.3f}]")
     print(
         f"   Complexity range: [{min(complexity_values):.2f}, {max(complexity_values):.2f}]"
@@ -679,7 +679,7 @@ def main() -> NoReturn:
         case "heatmap":
             heatmap_cli(args.weights, args.output)
         case "evolve-features":
-            print(f"\n🧬 Feature-Based Evolution with Self-Play")
+            print("\n🧬 Feature-Based Evolution with Self-Play")
             print(f"   Population: {args.pop_size}")
             print(f"   Generations: {args.generations}")
             print(f"   Self-play fraction: {args.self_play:.1%}")
@@ -695,10 +695,10 @@ def main() -> NoReturn:
                 self_play_fraction=args.self_play,
             )
             save_feature_weights(result.best_weights)
-            print(f"\n✅ Evolution complete!")
+            print("\n✅ Evolution complete!")
             print(f"   Best fitness: {result.best_fitness:.3f}")
             print(f"   Feature weights: {list(result.best_weights)}")
-            print(f"   Saved to: src/tictactoe/weights/best/feature_weights.pkl")
+            print("   Saved to: src/tictactoe/weights/best/feature_weights.pkl")
         case "evolve-jmetal":
             evolve_jmetal_cli(
                 args.pop_size,

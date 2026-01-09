@@ -210,7 +210,8 @@ def run_evaluation_series(config: EvaluationConfig) -> EvaluationSeriesResult:
     """Execute multiple GA runs and evaluate each champion."""
     runs: list[EvaluationRun] = []
     print(
-        f"Starting evaluation series: runs={config.runs}, pop={config.pop_size}, gens={config.generations}"
+        f"Starting evaluation series: runs={config.runs}, pop={config.pop_size}, "
+        f"gens={config.generations}"
     )
     for run_idx in range(config.runs):
         print(f"  Running evaluation {run_idx + 1}/{config.runs}...")
@@ -436,7 +437,8 @@ def compare_deap_jmetal(
         deap_weights: Best weights from DEAP evolution
         jmetal_pareto_front: Pareto front solutions from jMetalPy
         jmetal_objectives: Corresponding (fitness, complexity) values
-        selection_strategy: How to select from Pareto front ("balanced", "fitness", "simple")
+        selection_strategy: How to select from Pareto front 
+        ("balanced", "fitness", "simple")
 
     Returns:
         ComparisonResult with metrics for both approaches
