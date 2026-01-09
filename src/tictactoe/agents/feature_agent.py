@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import override
 
 import numpy as np
-from deap import algorithms, base, creator, tools
+from deap import base, creator, tools
 
 from tictactoe.agents.base import Agent
 from tictactoe.agents.heuristic_agent import HeuristicAgent
@@ -61,9 +61,8 @@ def extract_features(board: Board, move: int, player: int) -> list[float]:
 
     # Check if this move creates a win
     temp_board._state = temp_state.copy()
-    if temp_board.make_move(move, player):
-        if temp_board.get_winner() == player:
-            features[FEATURE_WIN_THREAT] = 1.0
+    if temp_board.make_move(move, player) and temp_board.get_winner() == player:
+        features[FEATURE_WIN_THREAT] = 1.0
 
     # Check if this move blocks opponent win
     opponent = -player
@@ -72,12 +71,14 @@ def extract_features(board: Board, move: int, player: int) -> list[float]:
     for opp_move in board.get_legal_moves():
         test_board = Board()
         test_board._state = temp_state.copy()
-        if test_board.make_move(opp_move, opponent):
-            if test_board.get_winner() == opponent:
-                # This opponent move would win, check if our move blocks it
-                if opp_move == move:
-                    features[FEATURE_BLOCK_THREAT] = 1.0
-                    break
+        # This opponent move would win, check if our move blocks it
+        if (
+            test_board.make_move(opp_move, opponent)
+            and test_board.get_winner() == opponent
+            and opp_move == move
+        ):
+            features[FEATURE_BLOCK_THREAT] = 1.0
+            break
 
     return features
 

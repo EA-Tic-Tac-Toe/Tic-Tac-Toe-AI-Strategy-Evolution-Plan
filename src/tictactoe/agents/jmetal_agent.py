@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import override
 
 import numpy as np
-from jmetal.algorithm.multiobjective import NSGAII, NSGAIII
+from jmetal.algorithm.multiobjective import NSGAII
 from jmetal.core.problem import FloatProblem
 from jmetal.core.solution import FloatSolution
 from jmetal.operator.crossover import SBXCrossover
@@ -198,7 +198,8 @@ class TicTacToeProblem(FloatProblem):
 class JMetalAgent(Agent):
     """
     Agent whose policy is a 9-dimensional weight vector; chooses the legal move whose
-    weight is maximal. The weights are evolved with jMetalPy using multi-objective optimization.
+    weight is maximal. The weights are evolved with jMetalPy using multi-objective
+    optimization.
     """
 
     def __init__(
@@ -329,7 +330,8 @@ def run_multiobjective_evolution(
         (-sol.objectives[0], sol.objectives[1]) for sol in solutions
     )
 
-    # Create history (simplified for now - jMetalPy doesn't have built-in history tracking)
+    # Create history (simplified for now -
+    # jMetalPy doesn't have built-in history tracking)
     # We'll compute statistics from the final Pareto front
     fitness_values = [obj[0] for obj in pareto_objectives]
     complexity_values = [obj[1] for obj in pareto_objectives]

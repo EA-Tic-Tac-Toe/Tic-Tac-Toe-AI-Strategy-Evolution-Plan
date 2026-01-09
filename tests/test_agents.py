@@ -244,6 +244,7 @@ class TestGeneticPersistence:
         # redirect save location
         # monkeypatching not needed — change cwd
         import os
+
         cwd = os.getcwd()
         os.chdir(tmp_path)
 

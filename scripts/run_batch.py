@@ -108,9 +108,7 @@ def main() -> None:
     )
     series = evaluator.run_evaluation_series(config)
     for run in series.runs:
-        print(
-            f"Run {run.run_id}: best_fitness={run.best_fitness:.3f} seed={run.seed}"
-        )
+        print(f"Run {run.run_id}: best_fitness={run.best_fitness:.3f} seed={run.seed}")
     print("Evolution batch finished. Aggregating results...")
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     base_dir = Path(args.output)
